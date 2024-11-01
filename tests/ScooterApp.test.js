@@ -13,62 +13,96 @@ describe("registerUser method tests", () => {
   });
 });
 
-// Log in test
-describe("loginUser method", () => {
-  beforeEach(() => {
-    scooterApp.registerUser("Alice", "password123", 25);
+// login user
+describe("loginUser method tests", () => {
+  test("Should log in a user successfully", () => {
+    scooterApp.registerUser("User3", "pass789", 24);
+    scooterApp.loginUser("User3", "pass789");
+    expect(scooterApp.registeredUsers["User3"].loggedIn).toBe(true);
   });
 
-  test("should log user in successfully", () => {
-    scooterApp.loginUser("Alice", "password123");
-    expect(scooterApp.registeredUsers["Alice"].loggedIn).toBe(true);
-  });
-});
-
-// Log out test
-describe("logoutUser method", () => {
-  beforeEach(() => {
-    scooterApp.registerUser("Bob", "securepass", 30);
-    scooterApp.loginUser("Bob", "securepass");
+  test("Should throw error if user does not exist", () => {
+    expect(() => {
+      scooterApp.loginUser("NonExistentUser", "pass000");
+    }).toThrow("Username or password is incorrect");
   });
 
-  test("should log user out successfully", () => {
-    scooterApp.logoutUser("Bob");
-    expect(scooterApp.registeredUsers["Bob"].loggedIn).toBe(false);
+  test("Should throw error if password is incorrect", () => {
+    scooterApp.registerUser("User4", "pass012", 26);
+    expect(() => {
+      scooterApp.loginUser("User4", "wrongPass");
+    }).toThrow("incorrect password");
   });
 });
 
-// Rent scooter test
-describe("rentScooter method", () => {
-  let scooter;
-
-  beforeEach(() => {
-    scooter = scooterApp.createScooter("Station A");
-    scooterApp.registerUser("Charlie", "password456", 28);
-    scooterApp.loginUser("Charlie", "password456");
+// logout user
+describe("logoutUser method tests", () => {
+  test("Should log out a user successfully", () => {
+    scooterApp.registerUser("User5", "pass345", 28);
+    scooterApp.loginUser("User5", "pass345");
+    scooterApp.logoutUser("User5");
+    expect(scooterApp.registeredUsers["User5"].loggedIn).toBe(false);
   });
 
-  test("should rent a scooter successfully", () => {
-    scooterApp.rentScooter(scooter, scooterApp.registeredUsers["Charlie"]);
-    expect(scooter.user).toBe(scooterApp.registeredUsers["Charlie"]);
+  test("Should throw error if user is not logged in", () => {
+    scooterApp.registerUser("User6", "pass678", 30);
+    expect(() => {
+      scooterApp.logoutUser("User6");
+    }).toThrow("no such user is logged in");
   });
 });
 
-// Dock scooter test
-describe("dockScooter method", () => {
-  let scooter;
-
-  beforeEach(() => {
-    scooter = scooterApp.createScooter("Station B");
-    scooterApp.registerUser("Dave", "password789", 35);
-    scooterApp.loginUser("Dave", "password789");
-    scooterApp.rentScooter(scooter, scooterApp.registeredUsers["Dave"]);
+// rent scooter
+describe("rentScooter method tests", () => {
+  test("Should rent a scooter to a user successfully", () => {
+    const scooter = scooterApp.createScooter("Station A");
+    scooterApp.registerUser("User7", "pass901", 32);
+    scooterApp.loginUser("User7", "pass901");
+    scooterApp.rentScooter(scooter, scooterApp.registeredUsers["User7"]);
+    expect(scooter.user).toBe(scooterApp.registeredUsers["User7"]);
+    expect(scooter.station).toBeNull();
   });
 
-  test("should dock a scooter successfully", () => {
+  test("Should throw error if scooter is already rented", () => {
+    const scooter = scooterApp.createScooter("Station A");
+    scooterApp.registerUser("User8", "pass234", 34);
+    scooterApp.loginUser("User8", "pass234");
+    scooterApp.rentScooter(scooter, scooterApp.registeredUsers["User8"]);
+    expect(() => {
+      scooterApp.rentScooter(scooter, scooterApp.registeredUsers["User8"]);
+    }).toThrow("scooter already rented");
+  });
+
+  test("Should throw error if scooter is not at any station", () => {
+    const scooter = new Scooter(); // Not added to any station
+    scooterApp.registerUser("User9", "pass567", 36);
+    scooterApp.loginUser("User9", "pass567");
+    expect(() => {
+      scooterApp.rentScooter(scooter, scooterApp.registeredUsers["User9"]);
+    }).toThrow("scooter not at any station");
+  });
+});
+
+// dock scooter
+describe("dockScooter method tests", () => {
+  test("Should dock a scooter at a station successfully", () => {
+    const scooter = new Scooter("Station C");
     scooterApp.dockScooter(scooter, "Station B");
     expect(scooter.station).toBe("Station B");
-    expect(scooter.user).toBe(null);
     expect(scooterApp.stations["Station B"]).toContain(scooter);
+  });
+
+  test("Should throw error if station does not exist", () => {
+    const scooter = new Scooter("Station C");
+    expect(() => {
+      scooterApp.dockScooter(scooter, "NonExistentStation");
+    }).toThrow("no such station");
+  });
+
+  test("Should throw error if scooter is already at the station", () => {
+    const scooter = scooterApp.createScooter("Station A");
+    expect(() => {
+      scooterApp.dockScooter(scooter, "Station A");
+    }).toThrow("scooter already at station");
   });
 });
