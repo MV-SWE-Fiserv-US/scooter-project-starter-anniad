@@ -1,29 +1,27 @@
-class Scooter{
+class Scooter {
   static nextSerial = 1;
-  constructor(station){
+  constructor(station) {
     this.station = station;
-    this.user = null; 
-    this.serial = Scooter.nextSerial++; 
+    this.user = null;
+    this.serial = Scooter.nextSerial++;
     this.charge = 100;
-    this.isBroken = false; 
+    this.isBroken = false;
+  }
+
+  rent(user) {
+    if (this.charge < 20) {
+      throw new Error("Scooter needs to charge.");
+    }
+    if (this.isBroken) {
+      throw new Error("scooter needs repair.");
+    }
+    this.user = user;
+  }
+
+  dock(station) {
+    this.station = station;
+    this.user = null;
+  }
 }
 
-rent(user){
-  if(this.charge <= 20){
-    throw new Error ('Scooter needs to charge.');
-}
-if(this.isBroken){
-  return new Error ('Scooter needs repair.')
-}
-this.user = user;
-this.station = null; 
-}
-
-dock(station){
-this.station = station;
-this.user = null;
-}
-}
-
-
-module.exports = Scooter
+module.exports = Scooter;
